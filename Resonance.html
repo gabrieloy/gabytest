@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resonance Strategic Interface</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React and ReactDOM CDNs -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for in-browser JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        .animate-in { animation: fadeIn 0.25s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        textarea { resize: none; }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // --- Data Definitions ---
+        const generateTrendData = (base, volatility) => 
+            Array.from({ length: 30 }, () => Math.floor(base + (Math.random() - 0.5) * volatility));
+
+        const mockCompanies = [
+            { 
+                id: 1, name: 'Nubank', domain: 'nubank.com.br', fit: 98, industry: 'Fintech', region: 'LATAM', theme: 'fintech banking growth', 
+                metrics: { 
+                    mau: { label: 'Monthly Active Users', current: '85M', trend: generateTrendData(80, 5), description: 'Representing a 12% YoY increase in active engagement across core LATAM markets. The surge is primarily driven by the "Cajitas" high-yield savings launch in Mexico.' }, 
+                    dau: { label: 'Daily Active Users', current: '32M', trend: generateTrendData(30, 3), description: 'Daily stickiness remains at record levels. User session duration has increased by 18% since the integration of the unified shopping experience.' }, 
+                    downloads: { label: 'App Downloads', current: '4.2M', trend: generateTrendData(4, 1), description: 'Download velocity remains strong. Significant spikes observed in the Mexican market following the aggressive interest rate campaign.' } 
+                } 
+            },
+            { 
+                id: 2, name: 'FREENOW', domain: 'free-now.com', fit: 92, industry: 'Mobility', region: 'EMEA', theme: 'urban transportation', 
+                metrics: { 
+                    mau: { label: 'Monthly Active Users', current: '12M', trend: generateTrendData(11, 2), description: 'Stable user base with high migration toward the new Super App UI. Expansion into micro-mobility is offsetting seasonal declines in ride-hailing.' }, 
+                    dau: { label: 'Daily Active Users', current: '2.5M', trend: generateTrendData(2, 0.5), description: 'Peak usage observed during commute hours across Tier 1 European cities. The "Multi-modal" shift is driving higher daily frequency per user.' }, 
+                    downloads: { label: 'App Downloads', current: '800K', trend: generateTrendData(0.8, 0.2), description: 'Focus has shifted toward high-LTV rider acquisition in Germany and Spain. Referral programs are currently the primary driver for organic growth.' } 
+                } 
+            }
+        ];
+
+        const mockPeople = {
+            1: [
+                { id: 'p1', name: 'Guilherme Lago', role: 'CFO', persona: 'Fiscal / Profitability-Focused', initials: 'GL', summary: 'Focused on operating leverage, EBITDA margin expansion, and reducing variable acquisition costs through infrastructure automation.' },
+                { id: 'p2', name: 'Cristina Junqueira', role: 'Chief Growth Officer', persona: 'Growth / Expansion', initials: 'CJ', summary: 'Leading the aggressive push into the Mexican savings market. Prioritizes rapid localization and high-velocity testing cycles.' },
+                { id: 'p3', name: 'Vitor Olivier', role: 'CTO / Product Lead', persona: 'Scale / Infrastructure', initials: 'VO', summary: 'Responsible for global platform scalability and ensuring marketing tech debt doesn\'t hinder product deployment.' }
+            ],
+            2: [
+                { id: 'p4', name: 'Thomas Zimmermann', role: 'CEO', persona: 'Market Integration', initials: 'TZ', summary: 'Orchestrating the transition to a unified mobility platform across high-regulation European markets.' },
+                { id: 'p5', name: 'Mariusz Zabrocki', role: 'VP of Growth', persona: 'Performance / Efficiency', initials: 'MZ', summary: 'Focused on regional growth pods and aggressive market share acquisition against local competitors like Bolt.' }
+            ]
+        };
+
+        const companyIntel = {
+            1: [
+                { id: 's1', type: 'Investor Relations', label: 'FY24 Efficiency Guidance', insight: 'Nubank is targeting a 50%+ efficiency ratio by decoupling acquisition from labor.', fullText: 'Guilherme Lago recently stated that the Mexico expansion will be the ultimate test of Nubank\'s automation infrastructure. The board expects customer growth to scale non-linearly without a corresponding spike in creative production or support headcount. They are specifically looking for programmatic solutions to handle localized creative volume.' },
+                { id: 's2', type: 'Apptopia Trend', label: 'Mexico Retention Spike', insight: 'Users who open a "Cajita" in Mexico show 3.5x higher LTV than pure credit users.', fullText: 'Localized data suggests that high-yield savings products are the primary driver of mid-funnel stickiness in the Mexican market. There is a specific creative gap in promoting these products to legacy credit card holders via dynamic, localized channels that manual teams cannot currently scale.' },
+                { id: 's3', type: 'CRM Intelligence', label: 'UA Team Feedback (June)', insight: 'The team mentioned that TikTok creative production is currently taking 3-4 weeks.', fullText: 'Notes from last sync: The UA team is frustrated with the bottleneck caused by manual static asset translations for the Mexican market. They are looking for a programmatic way to scale creative variations to match their testing roadmap. They expressed high interest in DPA if it integrates with their current measurement stack.' },
+                { id: 's4', type: 'Previous Outreach', label: 'August Follow-up', insight: 'Initial interest in EBITDA protection through automation, but needed visual proof.', fullText: 'The prospect was curious about how Jampp decouples growth from headcount. Recommended sending a visual projection of operating leverage gains for the Mexico Q4 launch.' }
+            ],
+            2: [
+                { id: 's5', type: 'Strategic News', label: 'Super App Pivot', insight: 'Integration of mobility vertical is diluting legacy UA signals.', fullText: 'The move to a single UI for taxis, scooters, and transit has complicated cross-device attribution. The marketing team is looking for solutions that can handle multi-vertical retargeting dynamically based on real-time user intent signals.' }
+            ]
+        };
+
+        const strategies = [
+            { id: 'architect', name: 'The Architect' },
+            { id: 'visualizer', name: 'The Visualizer' },
+            { id: 'disruptor', name: 'The Disruptor' },
+            { id: 'storyteller', name: 'The Storyteller' }
+        ];
+
+        // --- Components ---
+
+        const Icon = ({ name, size = 16, className = "" }) => {
+            useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [name]);
+            return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
+        };
+
+        const Sparkline = ({ data, color }) => {
+            const min = Math.min(...data);
+            const max = Math.max(...data);
+            const range = Math.max(max - min, 1);
+            const width = 120;
+            const height = 30;
+            const points = data.map((val, i) => `${(i / (data.length - 1)) * width},${height - ((val - min) / range) * height}`).join(' ');
+            return (
+                <svg width={width} height={height} className="overflow-visible">
+                    <polyline fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" points={points} />
+                </svg>
+            );
+        };
+
+        const MetricCard = ({ label, metric, icon, color, stroke, onClick }) => (
+            <button onClick={() => onClick(metric)} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-between text-left hover:border-indigo-400 hover:shadow-md transition-all group">
+                <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                        <div className={`p-1.5 rounded-lg bg-slate-50 ${color}`}><Icon name={icon} size={14} /></div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</span>
+                    </div>
+                    <span className="text-[12px] font-black text-slate-900">{metric.current}</span>
+                </div>
+                <div className="flex items-end justify-between pt-2">
+                    <Sparkline data={metric.trend} color={stroke} />
+                    <div className="p-1 bg-slate-50 rounded group-hover:bg-indigo-50 transition-colors">
+                        <Icon name="maximize-2" size={10} className="text-slate-300 group-hover:text-indigo-500" />
+                    </div>
+                </div>
+            </button>
+        );
+
+        const App = () => {
+            const [selectedCompany, setSelectedCompany] = useState(mockCompanies[0]);
+            const [selectedPerson, setSelectedPerson] = useState(mockPeople[1][0]);
+            const [selectedStrategy, setSelectedStrategy] = useState('architect');
+            const [draft, setDraft] = useState({ body: '', image: '', closing: '' });
+            const [isEditing, setIsEditing] = useState(false);
+            const [activeSignal, setActiveSignal] = useState(null);
+            const [activeMetric, setActiveMetric] = useState(null);
+
+            useEffect(() => {
+                const firstName = selectedPerson.name.split(' ')[0];
+                const intel = companyIntel[selectedCompany.id]?.[0]?.insight || "your growth targets";
+                
+                const templates = {
+                    architect: `Hi ${firstName},\n\nI’ve been mapping out the infrastructure supporting your current roadmap. Right now, there appears to be a mismatch between your aggressive ${selectedCompany.industry} targets and the manual framework supporting your retargeting.\n\nI’ve put together a structural view of how we’d reorganize this with Jampp to give your team some leverage:`,
+                    visualizer: `Hi ${firstName},\n\nI mapped out how your current creative mix stacks up against the targets mentioned in the Q3 report. There’s a clear opportunity to improve margins by automating your DPA model. \n\nTake a look at the projection I prepared for you below:`,
+                    disruptor: `Hi ${firstName},\n\nI was looking at the recent focus on ${intel.toLowerCase().slice(0, 40)}. It’s a bold move, but scaling this manually often creates an "efficiency tax" that eventually eats into your net margins.\n\nMost category leaders hit a ceiling because creative production can't keep up with spend. We help decouple those two so you can scale without headcount spikes.`,
+                    storyteller: `Hi ${firstName},\n\nThe journey ${selectedCompany.name} is on in ${selectedCompany.region} is impressive. But sustaining that kind of momentum usually requires a shift from manual asset management to a robust infrastructure.\n\nIt’s the difference between hitting a spend spike and establishing long-term market dominance.`
+                };
+
+                const images = {
+                    architect: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
+                    visualizer: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800",
+                    disruptor: "https://images.unsplash.com/photo-1543286386-713bdd548da4?auto=format&fit=crop&q=80&w=800",
+                    storyteller: "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=800"
+                };
+
+                setDraft({ 
+                    body: templates[selectedStrategy] || templates.architect, 
+                    image: images[selectedStrategy] || images.architect,
+                    closing: `I have a bit more detail on how this fits your 2024 objectives. Let me know if you'd like to see it.\n\nRegards,\nGaby`
+                });
+            }, [selectedCompany, selectedPerson, selectedStrategy]);
+
+            const handleCompanyChange = (c) => {
+                setSelectedCompany(c);
+                setSelectedPerson(mockPeople[c.id]?.[0] || { name: 'Contact', role: 'Lead', initials: 'CL', summary: 'Strategic stakeholder.' });
+            };
+
+            return (
+                <div className="flex h-screen bg-slate-50 text-[13px] overflow-hidden">
+                    {/* Sidebar */}
+                    <aside className="w-80 bg-white border-r border-slate-200 flex flex-col shadow-sm">
+                        <div className="p-6 border-b border-slate-100">
+                            <div className="flex items-center gap-2 mb-6">
+                                <div className="bg-slate-900 p-2 rounded text-white shadow-sm"><Icon name="zap" /></div>
+                                <h1 className="font-bold text-lg tracking-tight uppercase tracking-widest">Resonance</h1>
+                            </div>
+                            <div className="relative">
+                                <Icon name="search" size={14} className="absolute left-3 top-2.5 text-slate-400" />
+                                <input type="text" placeholder="Search accounts..." className="w-full pl-9 pr-4 py-2 bg-slate-50 rounded border border-slate-100 focus:outline-none focus:ring-1 focus:ring-slate-400 text-xs" />
+                            </div>
+                        </div>
+                        <nav className="flex-1 overflow-y-auto no-scrollbar">
+                            {mockCompanies.map((c) => (
+                                <button key={c.id} onClick={() => handleCompanyChange(c)} className={`w-full flex items-center justify-between p-4 border-b border-slate-50 transition-all ${selectedCompany.id === c.id ? 'bg-slate-900 text-white z-10 relative' : 'hover:bg-slate-50'}`}>
+                                    <div className="text-left"><p className="font-bold">{c.name}</p><p className={`text-[10px] ${selectedCompany.id === c.id ? 'opacity-60' : 'text-slate-400'}`}>{c.domain}</p></div>
+                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${selectedCompany.id === c.id ? 'bg-white/10' : 'bg-slate-100 text-slate-600'}`}>{c.fit}%</span>
+                                </button>
+                            ))}
+                        </nav>
+                    </aside>
+
+                    <main className="flex-1 overflow-y-auto flex flex-col bg-[#F9FAFB]">
+                        <header className="bg-white p-6 border-b border-slate-200 flex justify-between items-center sticky top-0 z-30 shadow-sm">
+                            <div className="flex items-center gap-4">
+                                <div className="h-12 w-12 rounded bg-slate-900 flex items-center justify-center font-bold text-white text-xl shadow-inner">{selectedCompany.name[0]}</div>
+                                <div>
+                                    <h2 className="font-bold text-lg">{selectedCompany.name}</h2>
+                                    <p className="text-[11px] text-slate-500 font-medium flex gap-2"><span>{selectedCompany.region}</span> • <span>{selectedCompany.industry}</span></p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center gap-1.5"><span className="h-1.5 w-1.5 bg-emerald-500 rounded-full"></span> LIVE INTELLIGENCE</span>
+                            </div>
+                        </header>
+
+                        <div className="p-8 max-w-7xl mx-auto w-full space-y-6">
+                            
+                            {/* Metrics Bar */}
+                            <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <MetricCard label="Monthly Active Users" metric={selectedCompany.metrics.mau} icon="users" color="text-indigo-600" stroke="#6366f1" onClick={setActiveMetric} />
+                                <MetricCard label="Daily Active Users" metric={selectedCompany.metrics.dau} icon="activity" color="text-emerald-600" stroke="#10b981" onClick={setActiveMetric} />
+                                <MetricCard label="App Downloads" metric={selectedCompany.metrics.downloads} icon="download" color="text-amber-600" stroke="#f59e0b" onClick={setActiveMetric} />
+                            </section>
+
+                            {/* Personnel */}
+                            <section className="animate-in">
+                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><Icon name="user-check" size={12} /> Strategic Stakeholders</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {(mockPeople[selectedCompany.id] || []).map(p => (
+                                        <button key={p.id} onClick={() => setSelectedPerson(p)} className={`p-4 rounded-xl border text-left transition-all ${selectedPerson.id === p.id ? 'bg-white border-slate-900 shadow-xl scale-[1.02] ring-4 ring-slate-900/5' : 'bg-white border-slate-100 hover:border-slate-300 shadow-sm'}`}>
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <div className="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center font-bold text-[12px] border border-slate-100">{p.initials}</div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="font-bold text-sm truncate">{p.name}</p>
+                                                    <p className="text-[10px] text-indigo-600 font-bold uppercase truncate tracking-wide">{p.role}</p>
+                                                </div>
+                                            </div>
+                                            <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-2 italic">"{p.summary}"</p>
+                                        </button>
+                                    ))}
+                                </div>
+                            </section>
+
+                            <div className="grid grid-cols-12 gap-8 pt-2">
+                                {/* Intel Feed */}
+                                <div className="col-span-4 space-y-4">
+                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Deep Intelligence</h3>
+                                    <div className="space-y-4">
+                                        {(companyIntel[selectedCompany.id] || []).map((intel) => (
+                                            <div key={intel.id} onClick={() => setActiveSignal(intel)} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all group">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded border uppercase ${intel.type.includes('Investor') ? 'bg-amber-50 text-amber-700 border-amber-100' : intel.type.includes('Apptopia') ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 'bg-slate-50 text-slate-600 border-slate-200'}`}>{intel.type}</span>
+                                                    <Icon name="maximize-2" size={12} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                                                </div>
+                                                <p className="font-bold text-slate-900 mb-1.5 text-[12px] tracking-tight leading-tight">{intel.label}</p>
+                                                <p className="text-slate-500 text-[11px] italic leading-relaxed line-clamp-2">"{intel.insight}"</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                {/* Email Composer */}
+                                <div className="col-span-8">
+                                    <div className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden min-h-[700px] flex flex-col">
+                                        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white">
+                                            <div className="flex items-center gap-3 text-slate-400"><Icon name="layout" /><span className="font-black text-[10px] uppercase tracking-widest">Consultative Composer</span></div>
+                                            <div className="flex items-center gap-2"><span className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse"></span><span className="text-[10px] font-bold text-slate-500 uppercase">Jampp Engine</span></div>
+                                        </div>
+                                        <div className="px-8 py-3 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
+                                            <span className="text-[9px] font-black text-slate-400 uppercase mr-3 tracking-widest">Strategy:</span>
+                                            {strategies.map(s => (
+                                                <button key={s.id} onClick={() => setSelectedStrategy(s.id)} className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all border ${selectedStrategy === s.id ? 'bg-slate-900 text-white border-slate-900 shadow-sm' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'}`}>{s.name}</button>
+                                            ))}
+                                        </div>
+                                        <div className="p-10 flex flex-col flex-1">
+                                            <div className="flex items-center gap-2 text-[12px] text-slate-400 font-medium pb-4 border-b border-slate-50 mb-8">
+                                                <span>Recipient: <strong className="text-slate-900 font-bold">{selectedPerson.name}</strong></span>
+                                            </div>
+
+                                            {isEditing ? (
+                                                <textarea value={draft.body} onChange={(e) => setDraft({...draft, body: e.target.value})} className="w-full flex-1 text-[15px] leading-relaxed text-slate-700 focus:outline-none" />
+                                            ) : (
+                                                <div className="space-y-6">
+                                                    <p className="text-[15px] leading-relaxed text-slate-700 whitespace-pre-line">{draft.body}</p>
+                                                    
+                                                    {/* In-body Strategic Asset */}
+                                                    <div className="my-8 relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 shadow-inner group">
+                                                        <img src={draft.image} alt="Strategic Asset" className="w-full h-56 object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent flex items-end p-6">
+                                                            <div className="text-white">
+                                                                <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-1">Strategic Visual Asset</p>
+                                                                <p className="text-sm font-medium opacity-90">Projected impact of automated DPA infrastructure on {selectedCompany.name} CAC/LTV efficiency.</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <p className="text-[15px] leading-relaxed text-slate-700 whitespace-pre-line">{draft.closing}</p>
+                                                </div>
+                                            )}
+
+                                            <div className="mt-12 pt-8 border-t border-slate-100 flex justify-between items-center">
+                                                <button onClick={() => setIsEditing(!isEditing)} className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 flex items-center gap-2 transition-all"><Icon name="edit-3" size={14}/> {isEditing ? 'SAVE DRAFT' : 'MANUAL OVERRIDE'}</button>
+                                                <button className="px-10 py-3.5 bg-slate-900 text-white rounded-xl font-black uppercase tracking-[0.2em] hover:bg-black transition-all shadow-2xl flex items-center gap-3"><Icon name="send" size={14}/> SEND AS GABY</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+
+                    {/* Metric Deep Dive Modal */}
+                    {activeMetric && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-4 animate-in">
+                            <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden">
+                                <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-white rounded-2xl shadow-sm border border-slate-200 text-indigo-600"><Icon name="activity" size={24}/></div>
+                                        <div>
+                                            <h4 className="font-bold text-xl text-slate-900">{activeMetric.label} Deep Dive</h4>
+                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">90 Day Historical Analysis</p>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setActiveMetric(null)} className="p-2.5 hover:bg-slate-200 rounded-xl text-slate-400 transition-colors"><Icon name="x" size={24}/></button>
+                                </div>
+                                <div className="p-12 space-y-10">
+                                    <div className="flex items-end justify-between">
+                                        <div>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Current Observation</p>
+                                            <p className="text-6xl font-black text-slate-900 tracking-tighter">{activeMetric.current}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-sm font-black text-emerald-600 uppercase mb-1">↗ +14.2% Growth</p>
+                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Last 3 Months</p>
+                                        </div>
+                                    </div>
+                                    <div className="h-56 w-full flex items-end gap-1.5 pb-2 border-b border-slate-100">
+                                        {activeMetric.trend.map((val, i) => (
+                                            <div key={i} className="flex-1 bg-indigo-500/20 rounded-t-lg group relative transition-all hover:bg-indigo-500/40" style={{ height: `${(val / 100) * 100}%` }}>
+                                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl">
+                                                    Value: {val}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100 flex gap-4">
+                                        <div className="text-indigo-600 mt-0.5"><Icon name="info" size={18}/></div>
+                                        <p className="text-slate-600 leading-relaxed text-sm font-medium">
+                                            {activeMetric.description}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-4">
+                                    <button onClick={() => setActiveMetric(null)} className="flex-1 py-4 bg-white border border-slate-200 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-slate-50 transition-all text-slate-600">Export Raw Data</button>
+                                    <button onClick={() => setActiveMetric(null)} className="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-black transition-all shadow-xl">Dismiss Analysis</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Signal Deep-Dive Modal */}
+                    {activeSignal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-4 animate-in">
+                            <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden">
+                                <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-white rounded-2xl shadow-sm border border-slate-200 text-indigo-600"><Icon name="shield-check" size={24}/></div>
+                                        <div>
+                                            <h4 className="font-bold text-xl text-slate-900">Intelligence Signal</h4>
+                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{activeSignal.type} • Source Verified</p>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setActiveSignal(null)} className="p-2.5 hover:bg-slate-200 rounded-xl text-slate-400 transition-colors"><Icon name="x" size={24}/></button>
+                                </div>
+                                <div className="p-10 space-y-8">
+                                    <div>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Observation</p>
+                                        <h5 className="font-bold text-slate-900 text-2xl leading-tight tracking-tight">{activeSignal.label}</h5>
+                                    </div>
+                                    <div className="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100 relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-4 opacity-5"><Icon name="quote" size={64}/></div>
+                                        <p className="text-slate-700 leading-relaxed text-[15px] font-medium italic relative z-10">"{activeSignal.fullText}"</p>
+                                    </div>
+                                    <div className="flex items-center gap-6 py-4 border-t border-slate-100">
+                                        <div className="flex-1">
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Resonance Match Score</p>
+                                            <div className="h-3 bg-slate-100 rounded-full overflow-hidden shadow-inner"><div className="h-full bg-indigo-500 w-[94%] shadow-lg"></div></div>
+                                        </div>
+                                        <span className="text-3xl font-black text-slate-900">94%</span>
+                                    </div>
+                                </div>
+                                <div className="p-6 bg-slate-50 border-t border-slate-100">
+                                    <button onClick={() => setActiveSignal(null)} className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.3em] hover:bg-black transition-all shadow-xl">Close Analysis</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

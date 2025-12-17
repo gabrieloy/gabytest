@@ -1,2 +1,3 @@
 FROM nginx:alpine
-RUN echo "<h1>Hola! Mi build de Google Cloud funciono</h1>" > /usr/share/nginx/html/index.html
+# Esto copia TODOS tus archivos (incluyendo Resonance.html) al servidor
+COPY . /usr/share/nginx/html/

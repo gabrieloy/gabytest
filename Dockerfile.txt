@@ -1,0 +1,4 @@
+# Use a tiny web server called Nginx
+FROM nginx:alpine
+# Put our HTML file into the web server folder
+COPY index.html /usr/share/nginx/html/

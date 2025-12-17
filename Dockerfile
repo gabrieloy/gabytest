@@ -1,2 +1,2 @@
 FROM nginx:alpine
-COPY . /usr/share/nginx/html/
+RUN echo "<h1>Hola! Mi build de Google Cloud funciono</h1>" > /usr/share/nginx/html/index.html

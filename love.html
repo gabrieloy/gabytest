@@ -17,13 +17,27 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         textarea { resize: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+        
+        /* Loading Shimmer */
+        .shimmer {
+            background: linear-gradient(90deg, #f0f9ff 0%, #e0f2fe 50%, #f0f9ff 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+        const { useState, useEffect, useMemo, useRef } = React;
 
         // --- Jampp Brand Constants ---
         const COLORS = {
@@ -53,7 +67,9 @@
                     summary: 'Architect of shift to profitability.', 
                     linkedin: 'https://linkedin.com', 
                     responsibilities: 'As Chief Financial Officer, Guilherme spearheads Nubank\'s global financial strategy, focusing intently on the efficiency ratio and cost of funding. He is currently driving the capitalization strategy for the Mexican expansion while maintaining strict controls on credit loss provisions across LATAM markets. His mandate includes optimizing capital allocation to balance aggressive growth with sustainable unit economics.', 
-                    psychographic: 'Guilherme is a highly analytical decision-maker who prioritizes data integrity and long-term sustainability over short-term gains. He values precision, transparency, and scalable logic. In negotiations, he responds best to arguments grounded in EBITDA protection, margin expansion, and risk mitigation. He is skeptical of "black box" solutions and requires clear attribution models.' 
+                    psychographic: 'Guilherme is a highly analytical decision-maker who prioritizes data integrity and long-term sustainability over short-term gains. He values precision, transparency, and scalable logic. In negotiations, he responds best to arguments grounded in EBITDA protection, margin expansion, and risk mitigation. He is skeptical of "black box" solutions and requires clear attribution models.',
+                    painPoints: ['Efficiency Ratio', 'Headcount scaling', 'Unit Economics'],
+                    imgCategory: 'finance'
                 },
                 { 
                     id: 'p2', 
@@ -63,7 +79,9 @@
                     summary: 'Leading expansion in Mexico.', 
                     linkedin: 'https://linkedin.com', 
                     responsibilities: 'Co-founder and Chief Growth Officer, Cristina oversees the brand\'s international footprint, specifically the high-stakes penetration into Mexico and Colombia. She is directly responsible for User Acquisition (UA) strategy, brand sentiment, and the "Nu" culture export. Her current focus is rapidly scaling the customer base in Mexico to mirror Brazil\'s dominance without inflating CAC.', 
-                    psychographic: 'A visionary and intuitive leader, Cristina values speed, disruption, and customer-centricity above all. She is bold and willing to take calculated risks if they promise to revolutionize the user experience. She responds to narratives about "democratizing access" and "challenging the status quo." She has little patience for bureaucracy or slow execution.' 
+                    psychographic: 'A visionary and intuitive leader, Cristina values speed, disruption, and customer-centricity above all. She is bold and willing to take calculated risks if they promise to revolutionize the user experience. She responds to narratives about "democratizing access" and "challenging the status quo." She has little patience for bureaucracy or slow execution.',
+                    painPoints: ['Speed to Market', 'Brand Dilution', 'CAC Spikes'],
+                    imgCategory: 'growth'
                 },
                 { 
                     id: 'p11', 
@@ -73,7 +91,9 @@
                     summary: 'Funnel optimization expert.', 
                     linkedin: '#', 
                     responsibilities: 'Juliana manages the day-to-day execution of performance marketing channels for the Mexico region. Her scope includes managing agency relationships, overseeing creative testing pipelines for TikTok and Meta, and optimizing the conversion funnel from install to first-deposit. She is currently tasked with reducing CPA for the "Cuenta Nu" high-yield product.', 
-                    psychographic: 'Juliana is a pragmatic, result-oriented operator. She lives in the metrics (CPA, ROAS, LTV) and values agility. She is constantly looking for "hacks" or efficiency gains in the funnel. She appreciates partners who can bring proactive insights and take operational load off her shoulders. She is less concerned with high-level strategy and more focused on weekly performance deltas.' 
+                    psychographic: 'Juliana is a pragmatic, result-oriented operator. She lives in the metrics (CPA, ROAS, LTV) and values agility. She is constantly looking for "hacks" or efficiency gains in the funnel. She appreciates partners who can bring proactive insights and take operational load off her shoulders. She is less concerned with high-level strategy and more focused on weekly performance deltas.',
+                    painPoints: ['Manual Workload', 'Creative Fatigue', 'CPA Targets'],
+                    imgCategory: 'tech'
                 }
             ],
             2: [
@@ -85,7 +105,9 @@
                     summary: 'Super App transition lead.', 
                     linkedin: '#', 
                     responsibilities: 'Thomas is steering FREENOW\'s transition from a taxi aggregator to a comprehensive Mobility-as-a-Service (MaaS) "Super App" across Europe. His responsibilities include regulatory navigation in key markets (London, Berlin, Dublin), unifying the fragmented tech stack, and driving the platform towards operational profitability while managing complex multi-modal supply chains.', 
-                    psychographic: 'Thomas is a strategic polymath who values ecosystem synergy. He thinks in terms of networks and platform dynamics. He appreciates partners who understand the complexity of the European regulatory landscape. He values clear, concise communication and solutions that solve multiple problems (e.g., supply and demand) simultaneously. He is an adapter who values resilience.' 
+                    psychographic: 'Thomas is a strategic polymath who values ecosystem synergy. He thinks in terms of networks and platform dynamics. He appreciates partners who understand the complexity of the European regulatory landscape. He values clear, concise communication and solutions that solve multiple problems (e.g., supply and demand) simultaneously. He is an adapter who values resilience.',
+                    painPoints: ['Platform Synergy', 'Profitability', 'Tech Debt'],
+                    imgCategory: 'city'
                 }
             ]
         };
@@ -170,19 +192,48 @@
             { id: 'storyteller', name: 'The Storyteller' }
         ];
 
+        // --- Visual Assets Map ---
+        const VISUAL_ASSETS = {
+            finance: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1000&auto=format&fit=crop", // Data viz/Charts
+            growth: "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?q=80&w=1000&auto=format&fit=crop", // Abstract Tech/Future
+            tech: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1000&auto=format&fit=crop", // Cyberpunk/Tech
+            city: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?q=80&w=1000&auto=format&fit=crop" // City/Mobility
+        };
+
         // --- Components ---
 
         const Icon = ({ name, size = 16, className = "", color = "currentColor" }) => {
-            useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [name]);
-            return <i data-lucide={name} style={{ width: size, height: size, color: color }} className={className}></i>;
+            const containerRef = useRef(null);
+            
+            useEffect(() => {
+                if (window.lucide && containerRef.current) {
+                    // Create a temporary element for Lucide to process
+                    const temp = document.createElement('i');
+                    temp.setAttribute('data-lucide', name);
+                    temp.style.width = typeof size === 'number' ? `${size}px` : size;
+                    temp.style.height = typeof size === 'number' ? `${size}px` : size;
+                    temp.style.color = color;
+                    if (className) temp.className = className;
+                    
+                    // Clear previous content and append new element
+                    containerRef.current.innerHTML = '';
+                    containerRef.current.appendChild(temp);
+                    
+                    // Run Lucide only on this container
+                    window.lucide.createIcons({
+                        root: containerRef.current,
+                        nameAttr: 'data-lucide'
+                    });
+                }
+            }, [name, size, className, color]);
+
+            return <span ref={containerRef} style={{ display: 'inline-flex', verticalAlign: 'middle' }}></span>;
         };
 
         const MiniBarChart = ({ data, color }) => {
             const min = Math.min(...data);
             const max = Math.max(...data);
             const range = Math.max(max - min, 1);
-            
-            // Use viewBox for responsive scaling to fill container
             const viewWidth = 100;
             const viewHeight = 40; 
             const barWidth = viewWidth / data.length;
@@ -190,16 +241,7 @@
             return (
                 <svg viewBox={`0 0 ${viewWidth} ${viewHeight}`} className="w-full h-full overflow-visible" preserveAspectRatio="none">
                     {data.map((val, i) => (
-                        <rect
-                            key={i}
-                            x={i * barWidth}
-                            y={viewHeight - ((val - min) / range) * viewHeight}
-                            width={barWidth * 0.7}
-                            height={Math.max(((val - min) / range) * viewHeight, 2)}
-                            fill={color}
-                            fillOpacity="0.6"
-                            rx="0.5"
-                        />
+                        <rect key={i} x={i * barWidth} y={viewHeight - ((val - min) / range) * viewHeight} width={barWidth * 0.7} height={Math.max(((val - min) / range) * viewHeight, 2)} fill={color} fillOpacity="0.6" rx="0.5" />
                     ))}
                 </svg>
             );
@@ -216,7 +258,6 @@
                     </div>
                     <Icon name="maximize-2" size={12} className="text-slate-300 group-hover:text-[#3159E5] opacity-0 group-hover:opacity-100 transition-all" />
                 </div>
-                
                 <div className="flex flex-col gap-2 flex-1 justify-end">
                     <span className="text-2xl font-black text-slate-900 leading-none">{metric?.current || 'N/A'}</span>
                     <div className="h-12 w-full mt-2 opacity-80 group-hover:opacity-100 transition-opacity">
@@ -238,21 +279,20 @@
             const [activePersonModal, setActivePersonModal] = useState(null);
             const [activeNewsModal, setActiveNewsModal] = useState(null);
             const [selectedContexts, setSelectedContexts] = useState([]);
+            
+            // New State for Generation Flow
+            const [isGenerated, setIsGenerated] = useState(false);
+            const [isGenerating, setIsGenerating] = useState(false);
+            const [imageError, setImageError] = useState(false);
 
             const isLinkedIn = selectedChannel === 'linkedin';
 
+            // Reset generation state when key factors change
             useEffect(() => {
-                const firstName = selectedPerson.name.split(' ')[0];
-                const intel = companyIntel[selectedCompany.id]?.[0]?.insight || "your growth targets";
-                
-                if (selectedChannel === 'linkedin') {
-                    setDraft(`Hi ${firstName}, noticed the team is leaning into ${intel.toLowerCase().slice(0, 35)}... scaling this manually is essentially a "growth tax." Jampp decouples that scale from creative labor. Worth a look? Regards, Gaby`);
-                } else {
-                    const opening = `Hi ${firstName},`;
-                    const body = `I noticed your team is prioritizing ${intel.toLowerCase().slice(0, 45)}... it's a smart shift. However, scaling this manually often creates a "hidden tax" on your growth.\n\nAt Jampp, we help category leaders decouple growth from manual creative headcount. Let me know if you'd like to see the data prepared for ${selectedCompany.name}.\n\nRegards,\nGaby`;
-                    setDraft(`${opening}\n\n${body}`);
-                }
-            }, [selectedCompany, selectedPerson, selectedStrategy, selectedChannel, selectedContexts]);
+                setIsGenerated(false);
+                setDraft('');
+                setImageError(false); // Reset image error on context change
+            }, [selectedCompany, selectedPerson, selectedStrategy, selectedChannel]);
 
             const handleCompanyChange = (c) => {
                 setSelectedCompany(c);
@@ -268,7 +308,51 @@
 
             const removeContext = (id) => setSelectedContexts(selectedContexts.filter(c => c.id !== id));
 
-            // Logic to prevent ReferenceErrors
+            const generateDraftContent = () => {
+                setIsGenerating(true);
+                
+                // Simulate processing delay
+                setTimeout(() => {
+                    const firstName = selectedPerson.name.split(' ')[0];
+                    let body = "";
+                    let opening = "";
+                    let subject = "";
+
+                    // Context assembly
+                    const contextPoints = selectedContexts.map(c => c.label).join(", ");
+                    const hasEfficiencyContext = contextPoints.toLowerCase().includes('efficiency');
+                    const hasNewsContext = contextPoints.toLowerCase().includes('bloomberg') || contextPoints.toLowerCase().includes('reuters');
+
+                    // PERSONA-BASED LOGIC
+                    if (selectedPerson.role.includes('CFO')) {
+                        // CFO: Focus on Efficiency, EBITDA, Unit Economics
+                        opening = `Hi ${firstName},`;
+                        body = `I've been following Nubank's efficiency guidance closely. The target to decouple growth from headcount is ambitious, but manually scaling UA to support the new Mexico products often acts as a hidden tax on that efficiency ratio.\n\nAt Jampp, we've built the infrastructure to automate this. Instead of hiring 10 more UA managers to handle the 100M+ user scale, our 'Always-On' bidder handles the creative and bidding complexity autonomously. This is about protecting EBITDA while maintaining aggressive growth.\n\nI have a breakdown of how this impacts unit economics specifically for the high-yield product lines. Open to a brief walk-through?\n\nBest,\nGaby`;
+                    } else if (selectedPerson.role.includes('Growth') || selectedPerson.role.includes('Manager')) {
+                        // Growth Manager: Focus on Fatigue, CPA, Workload
+                        opening = `Hi ${firstName},`;
+                        body = `Noticed the rapid creative rotation needed for the Mexico expansion. Keeping up with creative fatigue on TikTok while managing CPA targets manually is a massive operational lift—and frankly, it burns out teams.\n\nI wanted to show you how Jampp removes that manual friction. Our platform automates the creative testing loop, so you aren't spending your week swapping assets, but rather focusing on strategy. We're seeing this reduce CPA volatility by ~18% in similar fintech cohorts.\n\nLet me know if you want to see the creative performance data.\n\nBest,\nGaby`;
+                    } else if (selectedPerson.role.includes('CGO') || selectedPerson.role.includes('CEO')) {
+                        // CGO/CEO: Focus on Speed, Market Share, Vision
+                        opening = `Hi ${firstName},`;
+                        body = `Watching Nubank's speed in Mexico is impressive. However, 'speed to market' often hits a wall when user acquisition relies on manual levers. To truly democratize access at the scale of 100M customers, the acquisition engine needs to be as automated as the product itself.\n\nJampp acts as that automated layer. We help category leaders dominate market share by removing the bottleneck of manual campaign orchestration. It's about maintaining your velocity without linearly scaling your ops costs.\n\nI'd love to share a peer analysis on this.\n\nBest,\nGaby`;
+                    } else {
+                        // Default Fallback
+                        opening = `Hi ${firstName},`;
+                        body = `I noticed your team is prioritizing ${contextPoints || "scale"}... it's a smart shift. However, scaling this manually often creates a "hidden tax" on your growth.\n\nAt Jampp, we help category leaders decouple growth from manual creative headcount. Let me know if you'd like to see the data prepared for ${selectedCompany.name}.\n\nRegards,\nGaby`;
+                    }
+
+                    if (isLinkedIn) {
+                        setDraft(`${opening} ${body}`); // Compact for LinkedIn
+                    } else {
+                        setDraft(`${opening}\n\n${body}`);
+                    }
+                    
+                    setIsGenerated(true);
+                    setIsGenerating(false);
+                }, 800);
+            };
+
             const draftParts = draft.split('\n\n');
             const displayOpening = isLinkedIn ? "" : draftParts[0] || "";
             const displayBody = isLinkedIn ? draft : draftParts[1] || "";
@@ -423,34 +507,90 @@
                                             </div>
                                         )}
 
-                                        <div className="p-10 flex-1 space-y-4 animate-in fade-in duration-500">
+                                        <div className="p-10 flex-1 space-y-4 animate-in fade-in duration-500 relative">
+                                            {/* Header with Recipient */}
                                             <div className="flex items-center gap-2 text-[12px] text-slate-400 font-medium pb-4 border-b border-slate-50 mb-4"><span>Recipient: <strong className="text-slate-900">{selectedPerson.name}</strong></span></div>
-                                            {isEditing ? (
-                                                <textarea value={draft} onChange={(e) => setDraft(e.target.value)} className="w-full h-96 border-none focus:ring-0 p-0 text-[14px] leading-relaxed text-slate-700 font-sans" />
+                                            
+                                            {/* Generation Logic Display */}
+                                            {!isGenerated && !isGenerating ? (
+                                                <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center animate-in">
+                                                    <div className="mb-6 p-4 bg-slate-50 rounded-full text-slate-300">
+                                                        <Icon name="sparkles" size={32} />
+                                                    </div>
+                                                    <h3 className="text-sm font-black text-slate-900 mb-2 uppercase tracking-wide">Ready to Compose</h3>
+                                                    <p className="text-xs text-slate-500 max-w-xs mb-8 leading-relaxed">
+                                                        Lovelace will synthesize the selected context, {selectedPerson.name}'s psychographic profile, and Jampp's strategic angle into a consultative draft.
+                                                    </p>
+                                                    <button 
+                                                        onClick={generateDraftContent}
+                                                        className="px-8 py-3 bg-[#3159E5] text-white rounded-xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-[#0B091D] transition-all shadow-xl shadow-[#3159E5]/20 flex items-center gap-3"
+                                                    >
+                                                        <Icon name="zap" size={14} /> Generate Strategic Draft
+                                                    </button>
+                                                </div>
+                                            ) : isGenerating ? (
+                                                <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center">
+                                                    <div className="w-12 h-12 rounded-full shimmer mb-4"></div>
+                                                    <div className="w-64 h-3 bg-slate-100 rounded shimmer mb-2"></div>
+                                                    <div className="w-48 h-3 bg-slate-100 rounded shimmer"></div>
+                                                </div>
                                             ) : (
-                                                <>
-                                                    {!isLinkedIn && <p className="text-[14px] font-medium text-slate-800">{displayOpening}</p>}
-                                                    <div className="whitespace-pre-wrap text-[14px] leading-relaxed text-slate-700">{isLinkedIn ? draft : displayBody}</div>
-                                                    {!isLinkedIn && (
-                                                        <div className="my-6 relative rounded-xl overflow-hidden border border-slate-200 bg-slate-50 flex flex-col shadow-inner min-h-[200px] justify-center text-center text-slate-300">
-                                                            <Icon name="image" size={32} className="mx-auto mb-2" />
-                                                            <p className="text-[10px]">Visual context asset placeholder</p>
-                                                        </div>
+                                                <div className="animate-in fade-in duration-500">
+                                                    {isEditing ? (
+                                                        <textarea value={draft} onChange={(e) => setDraft(e.target.value)} className="w-full h-96 border-none focus:ring-0 p-0 text-[14px] leading-relaxed text-slate-700 font-sans" />
+                                                    ) : (
+                                                        <>
+                                                            {!isLinkedIn && <p className="text-[14px] font-medium text-slate-800">{displayOpening}</p>}
+                                                            <div className="whitespace-pre-wrap text-[14px] leading-relaxed text-slate-700">{isLinkedIn ? draft : displayBody}</div>
+                                                            {!isLinkedIn && (
+                                                                <div className="my-6 relative rounded-xl overflow-hidden border border-slate-200 bg-slate-50 flex flex-col shadow-inner min-h-[220px]">
+                                                                    {imageError ? (
+                                                                         <div className="flex flex-col items-center justify-center h-full text-slate-300">
+                                                                            <Icon name="image" size={32} />
+                                                                            <p className="text-[10px] mt-2">Visual asset placeholder</p>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <>
+                                                                            <img 
+                                                                                src={VISUAL_ASSETS[selectedPerson.imgCategory || 'finance']} 
+                                                                                alt="Strategic Context Visualization" 
+                                                                                className="w-full h-full object-cover animate-in"
+                                                                                onError={() => setImageError(true)}
+                                                                            />
+                                                                            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                                                                                <div className="flex items-center gap-2 mb-1">
+                                                                                    <span className="h-1.5 w-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                                                                                    <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">Live Data Context</p>
+                                                                                </div>
+                                                                                <p className="text-[11px] text-white font-medium">Visualizing impact on {selectedPerson.painPoints?.[0] || "Growth KPIs"}</p>
+                                                                            </div>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                            {!isLinkedIn && <p className="text-[14px] leading-relaxed text-slate-700 whitespace-pre-line">{displayClosing}</p>}
+                                                        </>
                                                     )}
-                                                    {!isLinkedIn && <p className="text-[14px] leading-relaxed text-slate-700 whitespace-pre-line">{displayClosing}</p>}
-                                                </>
+                                                </div>
                                             )}
                                         </div>
 
-                                        <div className="mt-8 p-10 pt-6 border-t border-slate-100 flex justify-between items-center">
-                                            <button className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-[#3159E5] flex items-center gap-2" onClick={() => setIsEditing(!isEditing)}>
+                                        <div className="mt-8 p-10 pt-6 border-t border-slate-100 flex justify-between items-center bg-white z-10 relative">
+                                            <button 
+                                                className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${!isGenerated ? 'text-slate-300 cursor-not-allowed' : 'text-slate-400 hover:text-[#3159E5]'}`} 
+                                                onClick={() => isGenerated && setIsEditing(!isEditing)}
+                                                disabled={!isGenerated}
+                                            >
                                                 <Icon name="edit-3" size={14} /> MANUAL OVERRIDE
                                             </button>
                                             <div className="flex gap-3">
                                                 {isLinkedIn && (
                                                     <a href={selectedPerson.linkedin} target="_blank" className="px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm"><Icon name="user" size={14} /> Go to Profile</a>
                                                 )}
-                                                <button className={`px-8 py-3 rounded text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-xl flex items-center gap-2 ${selectedChannel === 'linkedin' ? 'bg-[#0077b5] hover:bg-[#006097] text-white' : 'bg-slate-900 hover:bg-black text-white'}`}>
+                                                <button 
+                                                    disabled={!isGenerated}
+                                                    className={`px-8 py-3 rounded text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-xl flex items-center gap-2 ${!isGenerated ? 'bg-slate-100 text-slate-300 shadow-none' : (selectedChannel === 'linkedin' ? 'bg-[#0077b5] hover:bg-[#006097] text-white' : 'bg-slate-900 hover:bg-black text-white')}`}
+                                                >
                                                     {selectedChannel === 'linkedin' ? <Icon name="copy" size={14} /> : <Icon name="send" size={14} />} {selectedChannel === 'linkedin' ? 'COPY TEXT' : 'SEND AS GABY'}
                                                 </button>
                                             </div>

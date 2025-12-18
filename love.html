@@ -492,6 +492,24 @@
 
                                         <div className="px-8 py-3 bg-slate-50 border-b border-slate-100 flex items-center gap-2"><span className="text-[9px] font-black text-slate-400 uppercase mr-2 tracking-widest">Framework:</span><div className="flex gap-2 flex-1">{strategies.map(s => (<button key={s.id} onClick={() => setSelectedStrategy(s.id)} className={`px-3 py-1 rounded text-[10px] font-bold transition-all border ${selectedStrategy === s.id ? 'bg-[#3159E5] text-white border-[#3159E5] shadow-sm' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}>{s.name}</button>))}</div></div>
                                         
+                                        {/* CONTEXT CHIPS AREA */}
+                                        {selectedContexts.length > 0 && (
+                                            <div className="px-8 py-3 bg-indigo-50/50 border-b border-indigo-100 flex flex-wrap gap-2 animate-in">
+                                                {selectedContexts.map((context) => (
+                                                    <button 
+                                                        key={context.id} 
+                                                        onClick={() => removeContext(context.id)}
+                                                        className="group flex items-center gap-1.5 px-2.5 py-1 bg-white border border-indigo-100 rounded-lg shadow-sm text-indigo-600 transition-all hover:bg-rose-50 hover:border-rose-100 hover:text-rose-600"
+                                                    >
+                                                        <span className="text-[9px] font-black uppercase tracking-tighter opacity-60 group-hover:hidden">{context.type}</span>
+                                                        <span className="text-[10px] font-bold group-hover:hidden">{context.label}</span>
+                                                        <Icon name="x" size={10} className="text-indigo-300 group-hover:text-rose-400" />
+                                                        <span className="text-[10px] font-bold hidden group-hover:inline">Remove Context</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+
                                         <div className="p-10 flex-1 flex flex-col animate-in fade-in duration-500">
                                             {isSent && !isLinkedIn ? (
                                                 <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 animate-in">

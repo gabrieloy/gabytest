@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lovelace | Strategic Intelligence Interface</title>
+    <title>Lovelace by Jampp | Strategic Intelligence Interface</title>
     <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -13,7 +13,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
-        .animate-in { animation: fadeIn 0.25s ease-out; }
+        .animate-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         textarea { resize: none; }
@@ -25,37 +25,141 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
-        const generateTrendData = (base, volatility) => 
-            Array.from({ length: 30 }, () => Math.floor(base + (Math.random() - 0.5) * volatility));
+        // --- Jampp Brand Constants ---
+        const COLORS = {
+            blue: "#3159E5",
+            red: "#F24C6A",
+            yellow: "#F5B435",
+            green: "#15E891",
+            dark: "#0B091D",
+            lightBlue: "#E3E9FF"
+        };
+
+        const generateTrendData = (base, volatility, length = 90) => 
+            Array.from({ length }, () => Math.floor(base + (Math.random() - 0.5) * volatility));
 
         const mockCompanies = [
-            { id: 1, name: 'Nubank', domain: 'nubank.com.br', fit: 98, industry: 'Fintech', region: 'LATAM', theme: 'fintech banking digital growth', metrics: { mau: { label: 'Monthly Active Users', current: '85M', trend: generateTrendData(80, 5), description: 'Representing a 12% YoY increase in active engagement across core LATAM markets.' }, dau: { label: 'Daily Active Users', current: '32M', trend: generateTrendData(30, 3), description: 'Daily stickiness remains high.' }, downloads: { label: 'App Downloads', current: '4.2M', trend: generateTrendData(4, 1), description: 'Download velocity peaked following recent campaign.' } } },
-            { id: 2, name: 'FREENOW', domain: 'free-now.com', fit: 92, industry: 'Mobility', region: 'EMEA', theme: 'urban mobility', metrics: { mau: { label: 'Monthly Active Users', current: '12M', trend: generateTrendData(11, 2), description: 'Stable user base with high migration toward the new Super App UI.' }, dau: { label: 'Daily Active Users', current: '2.5M', trend: generateTrendData(2, 0.5), description: 'Peak usage observed during commute hours.' }, downloads: { label: 'App Downloads', current: '800K', trend: generateTrendData(0.8, 0.2), description: 'Seasonality indicates a focus shift to driver retention.' } } },
-            { id: 3, name: 'Mercado Libre', domain: 'mercadolivre.com', fit: 96, industry: 'E-commerce', region: 'LATAM', theme: 'retail finance logistics', metrics: { mau: { label: 'Monthly Active Users', current: '148M', trend: generateTrendData(140, 10), description: 'Dominating regional e-commerce traffic.' }, dau: { label: 'Daily Active Users', current: '54M', trend: generateTrendData(50, 5), description: 'High daily usage via Meli+ loyalty program.' }, downloads: { label: 'App Downloads', current: '8.5M', trend: generateTrendData(8, 2), description: 'Strong growth in Mercado Pago.' } } },
-            { id: 4, name: 'Rappi', domain: 'rappi.com', fit: 94, industry: 'Super App', region: 'LATAM', theme: 'delivery logistics', metrics: { mau: { label: 'Monthly Active Users', current: '25M', trend: generateTrendData(22, 4), description: 'Growth in Turbo vertical.' }, dau: { label: 'Daily Active Users', current: '7M', trend: generateTrendData(6, 1), description: 'High frequency user base.' }, downloads: { label: 'App Downloads', current: '1.2M', trend: generateTrendData(1, 0.3), description: 'Regional dominance focus.' } } }
+            { id: 1, name: 'Nubank', domain: 'nubank.com.br', fit: 98, industry: 'Fintech', region: 'LATAM', theme: 'fintech banking digital growth', metrics: { mau: { label: 'Monthly Active Users', current: '85M', trend: generateTrendData(80, 5, 90), description: 'Nubank continues to see a sustained 12% YoY increase in active engagement. The launch of high-yield products in Mexico has created a significant secondary peak in active user logs.' }, dau: { label: 'Daily Active Users', current: '32M', trend: generateTrendData(30, 3, 90), description: 'Daily stickiness remains exceptionally high. The integration of NuShopping has increased average daily session counts by 18%.' }, downloads: { label: 'App Downloads', current: '4.2M', trend: generateTrendData(40, 10, 90), description: 'Download velocity remains aggressive in the Mexican market, indicating strong regional acquisition momentum.' } } },
+            { id: 2, name: 'FREENOW', domain: 'free-now.com', fit: 92, industry: 'Mobility', region: 'EMEA', theme: 'urban mobility', metrics: { mau: { label: 'Monthly Active Users', current: '12M', trend: generateTrendData(11, 2, 90), description: 'Stable user base across Tier 1 European cities. The transition to the "Super App" UI has stabilized retention rates.' }, dau: { label: 'Daily Active Users', current: '2.5M', trend: generateTrendData(20, 5, 90), description: 'Usage density is concentrated in commute windows, suggesting a need for real-time location-aware retargeting.' }, downloads: { label: 'App Downloads', current: '800K', trend: generateTrendData(8, 2, 90), description: 'Marketing focus is shifting from generic acquisition toward rider retention in high-competition markets.' } } }
         ];
 
         const mockPeople = {
             1: [
-                { id: 'p1', name: 'Guilherme Lago', role: 'CFO', initials: 'GL', summary: 'Architect of shift to profitability.', linkedin: '#', responsibilities: 'Directs financial operations and capital allocation.', psychographic: 'Highly analytical and data-driven.' },
-                { id: 'p2', name: 'Cristina Junqueira', role: 'CGO', initials: 'CJ', summary: 'Leading expansion in Mexico.', linkedin: '#', responsibilities: 'Oversees global growth and localization.', psychographic: 'Visionary but grounded in unit economics.' },
-                { id: 'p11', name: 'Juliana Garcia', role: 'Growth Manager', initials: 'JG', summary: 'Funnel optimization expert.', linkedin: '#', responsibilities: 'Mexico UA management and creative testing.', psychographic: 'Pragmatic and results-oriented.' }
+                { 
+                    id: 'p1', 
+                    name: 'Guilherme Lago', 
+                    role: 'CFO', 
+                    initials: 'GL', 
+                    summary: 'Architect of shift to profitability.', 
+                    linkedin: 'https://linkedin.com', 
+                    responsibilities: 'As Chief Financial Officer, Guilherme spearheads Nubank\'s global financial strategy, focusing intently on the efficiency ratio and cost of funding. He is currently driving the capitalization strategy for the Mexican expansion while maintaining strict controls on credit loss provisions across LATAM markets. His mandate includes optimizing capital allocation to balance aggressive growth with sustainable unit economics.', 
+                    psychographic: 'Guilherme is a highly analytical decision-maker who prioritizes data integrity and long-term sustainability over short-term gains. He values precision, transparency, and scalable logic. In negotiations, he responds best to arguments grounded in EBITDA protection, margin expansion, and risk mitigation. He is skeptical of "black box" solutions and requires clear attribution models.' 
+                },
+                { 
+                    id: 'p2', 
+                    name: 'Cristina Junqueira', 
+                    role: 'CGO', 
+                    initials: 'CJ', 
+                    summary: 'Leading expansion in Mexico.', 
+                    linkedin: 'https://linkedin.com', 
+                    responsibilities: 'Co-founder and Chief Growth Officer, Cristina oversees the brand\'s international footprint, specifically the high-stakes penetration into Mexico and Colombia. She is directly responsible for User Acquisition (UA) strategy, brand sentiment, and the "Nu" culture export. Her current focus is rapidly scaling the customer base in Mexico to mirror Brazil\'s dominance without inflating CAC.', 
+                    psychographic: 'A visionary and intuitive leader, Cristina values speed, disruption, and customer-centricity above all. She is bold and willing to take calculated risks if they promise to revolutionize the user experience. She responds to narratives about "democratizing access" and "challenging the status quo." She has little patience for bureaucracy or slow execution.' 
+                },
+                { 
+                    id: 'p11', 
+                    name: 'Juliana Garcia', 
+                    role: 'Growth Manager', 
+                    initials: 'JG', 
+                    summary: 'Funnel optimization expert.', 
+                    linkedin: '#', 
+                    responsibilities: 'Juliana manages the day-to-day execution of performance marketing channels for the Mexico region. Her scope includes managing agency relationships, overseeing creative testing pipelines for TikTok and Meta, and optimizing the conversion funnel from install to first-deposit. She is currently tasked with reducing CPA for the "Cuenta Nu" high-yield product.', 
+                    psychographic: 'Juliana is a pragmatic, result-oriented operator. She lives in the metrics (CPA, ROAS, LTV) and values agility. She is constantly looking for "hacks" or efficiency gains in the funnel. She appreciates partners who can bring proactive insights and take operational load off her shoulders. She is less concerned with high-level strategy and more focused on weekly performance deltas.' 
+                }
             ],
-            2: [{ id: 'p4', name: 'Thomas Zimmermann', role: 'CEO', initials: 'TZ', summary: 'Super App transition lead.', linkedin: '#', responsibilities: 'Unified strategy.', psychographic: 'Strategic polymath.' }]
+            2: [
+                { 
+                    id: 'p4', 
+                    name: 'Thomas Zimmermann', 
+                    role: 'CEO', 
+                    initials: 'TZ', 
+                    summary: 'Super App transition lead.', 
+                    linkedin: '#', 
+                    responsibilities: 'Thomas is steering FREENOW\'s transition from a taxi aggregator to a comprehensive Mobility-as-a-Service (MaaS) "Super App" across Europe. His responsibilities include regulatory navigation in key markets (London, Berlin, Dublin), unifying the fragmented tech stack, and driving the platform towards operational profitability while managing complex multi-modal supply chains.', 
+                    psychographic: 'Thomas is a strategic polymath who values ecosystem synergy. He thinks in terms of networks and platform dynamics. He appreciates partners who understand the complexity of the European regulatory landscape. He values clear, concise communication and solutions that solve multiple problems (e.g., supply and demand) simultaneously. He is an adapter who values resilience.' 
+                }
+            ]
         };
 
         const companyIntel = {
             1: [
-                { id: 's1', type: 'Investor Relations', label: 'Efficiency Guidance', insight: 'Targeting 50% efficiency ratios.', fullText: 'CFO emphasized Mexico expansion as the benchmark for automation.' },
-                { id: 's5', type: 'Ad Intelligence', label: 'Creative Fatigue Spike', insight: 'CPM decay up 40% in Mexico.', fullText: 'Static assets showing audience saturation on TikTok.' },
-                { id: 's2', type: 'Apptopia Trend', label: 'Retention Anomaly', insight: 'Cajitas users show 3.5x higher LTV.', fullText: 'Mexico retention metrics show high stickiness for localized products.' }
+                { 
+                    id: 's1', 
+                    type: 'Investor Relations', 
+                    label: 'Efficiency Guidance', 
+                    insight: 'Nubank is targeting a 50%+ efficiency ratio by decoupling acquisition from labor.', 
+                    fullText: 'Leadership emphasized that Mexico will test Nubank\'s automation infrastructure to grow without headcount spikes.',
+                    priorities: [
+                        "Accelerate monetization in Mexico and Colombia.",
+                        "Secure efficient funding sources to improve NIM.",
+                        "Expand credit portfolio while maintaining asset quality."
+                    ],
+                    jamppImpact: "Nubank's aggressive efficiency targets mean they cannot solve growth problems by hiring more UA managers. They need algorithmic leverage. This is the perfect wedge for Jampp's 'Always-On' machine learning bidder.",
+                    irLink: "https://investors.nubank.com.br/"
+                },
+                { 
+                    id: 's5', 
+                    type: 'Ad Intelligence', 
+                    label: 'Creative Fatigue Spike', 
+                    insight: 'Mexico TikTok campaigns show 40% higher CPM decay vs standard benchmarks.', 
+                    fullText: 'Analysis shows static creative assets have run for 45+ days without iteration, leading to significant margin erosion.',
+                    deepAnalysis: "Our scrapers detected a significant drop in creative variety on TikTok and Reels in the last 14 days. The same 3 'UGC-style' videos have been rotating with high frequency (frequency > 4.2), causing a sharp increase in CPMs as the algorithm penalizes ad fatigue. Competitors (Mercado Pago) have refreshed their sets 2x in the same period.",
+                    adPreviews: [
+                        { platform: 'TikTok', format: 'UGC Video', status: 'Fatigued', color: 'bg-black' },
+                        { platform: 'Meta', format: 'Static Carousel', status: 'Stable', color: 'bg-blue-600' },
+                        { platform: 'YouTube', format: 'Bumper', status: 'Fatigued', color: 'bg-red-600' }
+                    ],
+                    links: {
+                        google: "https://adstransparency.google.com/",
+                        meta: "https://www.facebook.com/ads/library/",
+                        tiktok: "https://library.tiktok.com/"
+                    }
+                },
+                { 
+                    id: 's2', 
+                    type: 'Apptopia Trend', 
+                    label: 'Retention Anomaly', 
+                    insight: 'High-yield "Cajitas" users show 3.5x higher LTV, but cross-sell creative is lagging.', 
+                    fullText: 'Real-time trend analysis indicates high-yield savings products are the primary driver of stickiness in Mexico.',
+                    metricChanges: [
+                        { metric: "Session Duration", change: "+12%", trend: "up", context: "Driven by 'Cajitas' usage" },
+                        { metric: "Day 30 Retention", change: "+5%", trend: "up", context: "Stronger cohort stickiness" },
+                        { metric: "Cross-Sell Rate", change: "-2%", trend: "down", context: "Creative mismatch on offers" }
+                    ],
+                    detailedContext: "While top-of-funnel acquisition is healthy, the mid-funnel transition from 'Credit Card Only' users to 'Savings Account' users is facing friction. Users who adopt 'Cajitas' (Savings) within the first 7 days have a 350% higher LTV, yet only 15% of new installs are seeing savings-focused creatives during onboarding."
+                }
             ]
         };
 
         const mockLastNews = {
             1: [
-                { id: 'n1', title: "Nubank Surpasses 100M Customers", source: "Bloomberg", time: "2h ago", content: "Historic milestone reached across LATAM.", relevance: "Demands hyper-scale automation like Jampp." },
-                { id: 'n2', title: "Nu Mexico Expands High-Yield", source: "Reuters", time: "5h ago", content: "New tiers for 'Cajitas'.", relevance: "Requires automated creative versioning for tiers." }
+                { 
+                    id: 'n1', 
+                    title: "Nubank Surpasses 100M Customers Across Latin America", 
+                    source: "Bloomberg", 
+                    time: "2h ago", 
+                    content: "Nubank has officially crossed the 100 million customer mark, making it the first digital banking platform outside of Asia to reach this milestone. The growth is fueled by rapid adoption in Brazil (92M), Mexico (7M), and Colombia (1M). The report highlights that engagement metrics are outpacing traditional incumbents, signaling a shift in primary banking relationships.", 
+                    relevance: "Scale at this level demands hyper-scale automation. Manual UA management breaks at 100M scale. Jampp's programmatic DSP is the only way to maintain CPA efficiency while targeting broad audiences. We can position our 'Always-On' bidder as the infrastructure necessary to handle this new volume without hiring 50 new UA managers.",
+                    url: "https://www.bloomberg.com/company/"
+                },
+                { 
+                    id: 'n2', 
+                    title: "Nu Mexico aggressive expansion with 15% Yield on 'Cajitas'", 
+                    source: "Reuters", 
+                    time: "5h ago", 
+                    content: "In a bid to capture the unbanked market in Mexico, Nubank has raised the annual yield on its savings product 'Cajitas' to 15%. This aggressive move is designed to accelerate deposit growth and challenge local incumbents. The strategy focuses on converting credit-only users into deposit-holding customers to secure cheaper funding sources.", 
+                    relevance: "This is a classic 'High-Yield' acquisition play. The challenge isn't just getting installs; it's getting *funded* accounts. Jampp can execute a 'Post-Install Event Optimization' (AEO) campaign targeting the 'First Deposit' event, ensuring we aren't just driving cheap installs, but acquiring users who actually fund their Cajitas to get the 15% rate.",
+                    url: "https://www.reuters.com/"
+                }
             ]
         };
 
@@ -66,39 +170,58 @@
             { id: 'storyteller', name: 'The Storyteller' }
         ];
 
+        // --- Components ---
+
         const Icon = ({ name, size = 16, className = "", color = "currentColor" }) => {
             useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [name]);
             return <i data-lucide={name} style={{ width: size, height: size, color: color }} className={className}></i>;
         };
 
-        const Sparkline = ({ data, color }) => {
+        const MiniBarChart = ({ data, color }) => {
             const min = Math.min(...data);
             const max = Math.max(...data);
             const range = Math.max(max - min, 1);
-            const width = 120;
-            const height = 30;
-            const points = data.map((val, i) => `${(i / (data.length - 1)) * width},${height - ((val - min) / range) * height}`).join(' ');
+            
+            // Use viewBox for responsive scaling to fill container
+            const viewWidth = 100;
+            const viewHeight = 40; 
+            const barWidth = viewWidth / data.length;
+
             return (
-                <svg width={width} height={height} className="overflow-visible">
-                    <polyline fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" points={points} />
+                <svg viewBox={`0 0 ${viewWidth} ${viewHeight}`} className="w-full h-full overflow-visible" preserveAspectRatio="none">
+                    {data.map((val, i) => (
+                        <rect
+                            key={i}
+                            x={i * barWidth}
+                            y={viewHeight - ((val - min) / range) * viewHeight}
+                            width={barWidth * 0.7}
+                            height={Math.max(((val - min) / range) * viewHeight, 2)}
+                            fill={color}
+                            fillOpacity="0.6"
+                            rx="0.5"
+                        />
+                    ))}
                 </svg>
             );
         };
 
-        const MetricCard = ({ label, metric, icon, color, stroke, onClick }) => (
-            <button onClick={() => onClick(metric)} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-between text-left hover:border-indigo-400 hover:shadow-md transition-all group">
-                <div className="flex items-center justify-between mb-2">
+        const MetricCard = ({ label, metric, icon, stroke, onClick }) => (
+            <button onClick={() => onClick(metric)} className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-between text-left hover:border-[#3159E5] hover:shadow-md transition-all group min-h-[140px]">
+                <div className="flex items-center justify-between mb-4 w-full">
                     <div className="flex items-center gap-2">
-                        <div className={`p-1.5 rounded-lg bg-slate-50 ${color}`}>
-                            <Icon name={icon} size={14} />
+                        <div className={`p-1.5 rounded-lg bg-slate-50`}>
+                            <Icon name={icon} size={14} color={stroke} />
                         </div>
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</span>
                     </div>
-                    <span className="text-[12px] font-black text-slate-900">{metric?.current || 'N/A'}</span>
+                    <Icon name="maximize-2" size={12} className="text-slate-300 group-hover:text-[#3159E5] opacity-0 group-hover:opacity-100 transition-all" />
                 </div>
-                <div className="flex items-end justify-between pt-2">
-                    <Sparkline data={metric?.trend || [50, 50]} color={stroke} />
-                    <Icon name="maximize-2" size={10} className="text-slate-300 group-hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition-all" />
+                
+                <div className="flex flex-col gap-2 flex-1 justify-end">
+                    <span className="text-2xl font-black text-slate-900 leading-none">{metric?.current || 'N/A'}</span>
+                    <div className="h-12 w-full mt-2 opacity-80 group-hover:opacity-100 transition-opacity">
+                        <MiniBarChart data={metric?.trend || [50, 50]} color={stroke} />
+                    </div>
                 </div>
             </button>
         );
@@ -115,7 +238,6 @@
             const [activePersonModal, setActivePersonModal] = useState(null);
             const [activeNewsModal, setActiveNewsModal] = useState(null);
             const [selectedContexts, setSelectedContexts] = useState([]);
-            const [generatedImage, setGeneratedImage] = useState(null);
 
             const isLinkedIn = selectedChannel === 'linkedin';
 
@@ -127,7 +249,7 @@
                     setDraft(`Hi ${firstName}, noticed the team is leaning into ${intel.toLowerCase().slice(0, 35)}... scaling this manually is essentially a "growth tax." Jampp decouples that scale from creative labor. Worth a look? Regards, Gaby`);
                 } else {
                     const opening = `Hi ${firstName},`;
-                    const body = `I noticed your team is prioritizing ${intel.toLowerCase().slice(0, 45)}... it's a smart shift. However, scaling this manually often creates a "hidden tax" on your growth.\n\nAt Jampp, we help category leaders decouple growth from manual creative headcount. Let me know if you'd like to see the specific data we prepared for ${selectedCompany.name}.\n\nRegards,\nGaby`;
+                    const body = `I noticed your team is prioritizing ${intel.toLowerCase().slice(0, 45)}... it's a smart shift. However, scaling this manually often creates a "hidden tax" on your growth.\n\nAt Jampp, we help category leaders decouple growth from manual creative headcount. Let me know if you'd like to see the data prepared for ${selectedCompany.name}.\n\nRegards,\nGaby`;
                     setDraft(`${opening}\n\n${body}`);
                 }
             }, [selectedCompany, selectedPerson, selectedStrategy, selectedChannel, selectedContexts]);
@@ -146,27 +268,32 @@
 
             const removeContext = (id) => setSelectedContexts(selectedContexts.filter(c => c.id !== id));
 
-            const displayOpening = isLinkedIn ? "" : draft.split('\n\n')[0] || "";
-            const displayBody = isLinkedIn ? draft : draft.split('\n\n')[1] || "";
-            const displayClosing = isLinkedIn ? "" : draft.split('\n\n')[2] || "";
+            // Logic to prevent ReferenceErrors
+            const draftParts = draft.split('\n\n');
+            const displayOpening = isLinkedIn ? "" : draftParts[0] || "";
+            const displayBody = isLinkedIn ? draft : draftParts[1] || "";
+            const displayClosing = isLinkedIn ? "" : draftParts[2] || "";
 
             return (
-                <div className="flex h-screen bg-slate-50 text-[13px] overflow-hidden">
+                <div className="flex h-screen bg-slate-50 text-[13px] overflow-hidden font-sans">
                     {/* Sidebar */}
                     <aside className="w-80 bg-white border-r border-slate-200 flex flex-col shadow-sm">
                         <div className="p-6 border-b border-slate-100">
-                            <div className="flex items-center gap-2 mb-6">
-                                <div className="bg-indigo-600 p-2 rounded text-white shadow-sm"><Icon name="zap" /></div>
-                                <h1 className="font-black text-lg tracking-tight uppercase leading-none text-slate-900">Lovelace</h1>
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="bg-[#3159E5] p-2 rounded text-white shadow-sm"><Icon name="zap" /></div>
+                                <div>
+                                    <h1 className="font-black text-lg tracking-tight uppercase leading-none text-slate-900">Lovelace</h1>
+                                    <span className="text-[9px] font-black text-[#3159E5] tracking-[0.2em] uppercase leading-none block mt-0.5">by Jampp</span>
+                                </div>
                             </div>
                             <div className="relative">
                                 <Icon name="search" size={14} className="absolute left-3 top-2.5 text-slate-400" />
-                                <input type="text" placeholder="Search accounts..." className="w-full pl-9 pr-4 py-2 bg-slate-50 rounded border border-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs" />
+                                <input type="text" placeholder="Search accounts..." className="w-full pl-9 pr-4 py-2 bg-slate-50 rounded border border-slate-100 focus:outline-none focus:ring-1 focus:ring-[#3159E5] text-xs" />
                             </div>
                         </div>
                         <nav className="flex-1 overflow-y-auto no-scrollbar">
                             {mockCompanies.map((c) => (
-                                <button key={c.id} onClick={() => handleCompanyChange(c)} className={`w-full flex items-center justify-between p-4 border-b border-slate-50 transition-all ${selectedCompany.id === c.id ? 'bg-indigo-600 text-white shadow-lg relative z-10' : 'hover:bg-slate-50'}`}>
+                                <button key={c.id} onClick={() => handleCompanyChange(c)} className={`w-full flex items-center justify-between p-4 border-b border-slate-50 transition-all ${selectedCompany.id === c.id ? 'bg-[#3159E5] text-white shadow-lg relative z-10' : 'hover:bg-slate-50'}`}>
                                     <div className="text-left"><p className="font-bold">{c.name}</p><p className={`text-[10px] ${selectedCompany.id === c.id ? 'opacity-70' : 'text-slate-400'}`}>{c.domain}</p></div>
                                     <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${selectedCompany.id === c.id ? 'bg-white/10' : 'bg-slate-100 text-slate-600'}`}>{c.fit}%</span>
                                 </button>
@@ -191,61 +318,76 @@
                         <div className="p-8 max-w-7xl mx-auto w-full space-y-6">
                             
                             <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <MetricCard label="Monthly Active Users" metric={selectedCompany.metrics.mau} icon="users" color="text-indigo-600" stroke="#6366f1" onClick={setActiveMetric} />
-                                <MetricCard label="Daily Active Users" metric={selectedCompany.metrics.dau} icon="activity" color="text-emerald-600" stroke="#10b981" onClick={setActiveMetric} />
-                                <MetricCard label="App Downloads" metric={selectedCompany.metrics.downloads} icon="download" color="text-amber-600" stroke="#f59e0b" onClick={setActiveMetric} />
+                                <MetricCard label="Monthly Active Users" metric={selectedCompany.metrics.mau} icon="users" stroke={COLORS.blue} onClick={setActiveMetric} />
+                                <MetricCard label="Daily Active Users" metric={selectedCompany.metrics.dau} icon="activity" stroke={COLORS.green} onClick={setActiveMetric} />
+                                <MetricCard label="App Downloads" metric={selectedCompany.metrics.downloads} icon="download" stroke={COLORS.yellow} onClick={setActiveMetric} />
                             </section>
 
                             <section className="animate-in">
                                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><Icon name="user-check" size={12} /> Strategic Contacts</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     {(mockPeople[selectedCompany.id] || mockPeople[1]).map(p => (
-                                        <button key={p.id} onClick={() => { setSelectedPerson(p); setActivePersonModal(p); }} className={`p-4 rounded border text-left transition-all group ${selectedPerson.id === p.id ? 'bg-white border-indigo-600 ring-2 ring-indigo-600/5 shadow-lg scale-[1.02]' : 'bg-white border-slate-100 hover:border-slate-300'}`}>
+                                        <div 
+                                            key={p.id} 
+                                            onClick={() => setSelectedPerson(p)} 
+                                            className={`p-4 rounded border text-left transition-all group cursor-pointer ${selectedPerson.id === p.id ? 'bg-white border-[#3159E5] ring-2 ring-[#3159E5]/5 shadow-lg scale-[1.02]' : 'bg-white border-slate-100 hover:border-slate-300'}`}
+                                        >
                                             <div className="flex items-center gap-3 mb-2">
                                                 <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold border border-slate-200">{p.initials}</div>
                                                 <div className="flex-1">
-                                                    <p className="font-bold text-xs flex items-center justify-between">{p.name} <Icon name="info" size={12} className="text-slate-300 group-hover:text-indigo-600 transition-all" /></p>
-                                                    <p className="text-[10px] text-indigo-600 font-bold uppercase">{p.role}</p>
+                                                    <div className="flex items-center justify-between">
+                                                        <p className="font-bold text-xs">{p.name}</p>
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); setActivePersonModal(p); }}
+                                                            className="p-1.5 -mr-1.5 hover:bg-slate-50 rounded-md transition-colors"
+                                                            title="View Psychographic Profile"
+                                                        >
+                                                            <Icon name="info" size={12} className="text-slate-300 group-hover:text-[#3159E5] transition-all" />
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-[10px] text-[#3159E5] font-bold uppercase">{p.role}</p>
                                                 </div>
                                             </div>
-                                            <p className="text-[11px] text-slate-500 leading-snug line-clamp-2">{p.summary}</p>
-                                        </button>
+                                            <p className="text-[11px] text-slate-500 leading-snug line-clamp-2 italic">"{p.summary}"</p>
+                                        </div>
                                     ))}
                                 </div>
                             </section>
 
                             <div className="grid grid-cols-12 gap-8 pt-2">
                                 <div className="col-span-4 space-y-6">
+                                    {/* STRATEGIC INTELLIGENCE */}
                                     <section>
-                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><Icon name="target" size={14} className="text-indigo-600" /> Strategic Intelligence</h3>
+                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><Icon name="target" size={14} color={COLORS.blue} /> Strategic Intelligence</h3>
                                         <div className="space-y-4">
                                             {(companyIntel[selectedCompany.id] || []).map((intel) => (
-                                                <button key={intel.id} onClick={() => setActiveSignal(intel)} className="w-full text-left bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-600 hover:shadow-md transition-all group overflow-hidden">
+                                                <button key={intel.id} onClick={() => setActiveSignal(intel)} className="w-full text-left bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:border-[#3159E5] hover:shadow-md transition-all group overflow-hidden">
                                                     <div className="flex justify-between items-start mb-2">
                                                         <span className={`text-[8px] font-black px-1.5 py-0.5 rounded border uppercase ${
-                                                            intel.type.includes('Investor') ? 'bg-amber-50 text-amber-700 border-amber-200' : 
-                                                            intel.type.includes('Apptopia') ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 
-                                                            intel.type.includes('Ad') ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-slate-50 text-slate-600'
+                                                            intel.type.includes('Investor') ? 'bg-[#F5B435]/10 text-[#F5B435] border-[#F5B435]/20' : 
+                                                            intel.type.includes('Apptopia') ? 'bg-[#3159E5]/10 text-[#3159E5] border-[#3159E5]/20' : 
+                                                            intel.type.includes('Ad') ? 'bg-[#F24C6A]/10 text-[#F24C6A] border-[#F24C6A]/20' : 'bg-slate-50 text-slate-600'
                                                         }`}>{intel.type}</span>
                                                         <Icon name="maximize-2" size={12} className="text-slate-300 group-hover:text-indigo-600" />
                                                     </div>
-                                                    <p className="font-bold text-slate-900 mb-1 leading-tight text-[12px]">{intel.label}</p>
-                                                    <p className="text-slate-500 text-[11px] line-clamp-2 italic">"{intel.insight}"</p>
+                                                    <p className="font-bold text-slate-900 mb-1 leading-tight text-[12px] tracking-tight">{intel.label}</p>
+                                                    <p className="text-slate-500 text-[11px] line-clamp-2 italic leading-relaxed">"{intel.insight}"</p>
                                                 </button>
                                             ))}
                                         </div>
                                     </section>
 
+                                    {/* LAST NEWS */}
                                     <section className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2"><Icon name="newspaper" size={14} className="text-indigo-600" /> Last News</h3>
+                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2"><Icon name="newspaper" size={14} color={COLORS.blue} /> Last News</h3>
                                         <div className="space-y-4">
                                             {(mockLastNews[selectedCompany.id] || []).map((news, idx) => (
                                                 <div key={idx} onClick={() => setActiveNewsModal(news)} className="group cursor-pointer">
                                                     <div className="flex justify-between items-start mb-1">
-                                                        <span className="text-[9px] font-bold text-indigo-600 uppercase">{news.source}</span>
+                                                        <span className="text-[9px] font-bold text-[#3159E5] uppercase">{news.source}</span>
                                                         <div className="flex items-center gap-1 text-[9px] text-slate-400"><Icon name="clock" size={10} /> {news.time}</div>
                                                     </div>
-                                                    <p className="text-[11px] font-semibold text-slate-800 leading-snug group-hover:text-indigo-600 transition-colors">{news.title}</p>
+                                                    <p className="text-[11px] font-semibold text-slate-800 leading-snug group-hover:text-[#3159E5] transition-colors line-clamp-2">{news.title}</p>
                                                     <div className="mt-2 h-px bg-slate-50 group-last:hidden"></div>
                                                 </div>
                                             ))}
@@ -263,7 +405,7 @@
                                             </div>
                                         </div>
 
-                                        <div className="px-8 py-3 bg-slate-50 border-b border-slate-100 flex items-center gap-2"><span className="text-[9px] font-black text-slate-400 uppercase mr-2 tracking-widest">Framework:</span><div className="flex gap-2 flex-1">{strategies.map(s => (<button key={s.id} onClick={() => setSelectedStrategy(s.id)} className={`px-3 py-1 rounded text-[10px] font-bold transition-all border ${selectedStrategy === s.id ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}>{s.name}</button>))}</div></div>
+                                        <div className="px-8 py-3 bg-slate-50 border-b border-slate-100 flex items-center gap-2"><span className="text-[9px] font-black text-slate-400 uppercase mr-2 tracking-widest">Framework:</span><div className="flex gap-2 flex-1">{strategies.map(s => (<button key={s.id} onClick={() => setSelectedStrategy(s.id)} className={`px-3 py-1 rounded text-[10px] font-bold transition-all border ${selectedStrategy === s.id ? 'bg-[#3159E5] text-white border-[#3159E5] shadow-sm' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}>{s.name}</button>))}</div></div>
                                         
                                         {selectedContexts.length > 0 && (
                                             <div className="px-8 py-3 bg-indigo-50 border-b border-indigo-100 flex items-center gap-3 animate-in">
@@ -301,7 +443,9 @@
                                         </div>
 
                                         <div className="mt-8 p-10 pt-6 border-t border-slate-100 flex justify-between items-center">
-                                            <button onClick={() => setIsEditing(!isEditing)} className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 flex items-center gap-2 transition-all"><Icon name="edit-3" size={14}/> {isEditing ? 'SAVE' : 'MANUAL OVERRIDE'}</button>
+                                            <button className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-[#3159E5] flex items-center gap-2" onClick={() => setIsEditing(!isEditing)}>
+                                                <Icon name="edit-3" size={14} /> MANUAL OVERRIDE
+                                            </button>
                                             <div className="flex gap-3">
                                                 {isLinkedIn && (
                                                     <a href={selectedPerson.linkedin} target="_blank" className="px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm"><Icon name="user" size={14} /> Go to Profile</a>
@@ -317,78 +461,221 @@
                         </div>
                     </main>
 
-                    {/* Modals implement deep dives */}
+                    {/* Modals Implementations */}
                     {activeMetric && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in">
-                            <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95">
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                            <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95">
                                 <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                                    <div className="flex items-center gap-3"><div className="p-2 bg-white rounded-lg border border-slate-200 text-indigo-600 shadow-sm"><Icon name="activity" size={20}/></div><div><h4 className="font-bold text-slate-900">{activeMetric.label} Analysis</h4><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Historical Performance</p></div></div>
-                                    <button onClick={() => setActiveMetric(null)} className="p-2 hover:bg-slate-200 rounded-lg text-slate-400"><Icon name="x" size={20}/></button>
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-white rounded-lg border border-slate-200 text-[#3159E5] shadow-sm"><Icon name="activity" size={20}/></div>
+                                        <div><h4 className="font-bold text-slate-900">{activeMetric.label} Analysis</h4><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">90 Day Historical View</p></div>
+                                    </div>
+                                    <button onClick={() => setActiveMetric(null)} className="p-2 hover:bg-slate-200 rounded-lg text-slate-400 transition-colors"><Icon name="x" size={20}/></button>
                                 </div>
-                                <div className="p-10 space-y-8 text-slate-700">
-                                    <div className="flex items-end justify-between"><p className="text-5xl font-black text-slate-900">{activeMetric.current}</p><p className="text-sm font-black text-emerald-600 uppercase tracking-widest">↗ High Fit</p></div>
-                                    <p className="text-slate-600 leading-relaxed text-[14px] italic">"{activeMetric.description}"</p>
-                                    <button onClick={() => setActiveMetric(null)} className="w-full py-3 font-bold text-[11px] uppercase tracking-widest bg-slate-900 text-white rounded-lg hover:bg-black transition-all">Close Analytics</button>
+                                <div className="p-10 space-y-10">
+                                    <div className="flex items-end justify-between">
+                                        <div>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Observation</p>
+                                            <p className="text-5xl font-black text-slate-900 tracking-tighter">{activeMetric.current}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-sm font-black text-emerald-600 uppercase mb-1">↗ Trending Positive</p>
+                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Last 3 Months</p>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* 90-Day Chart Visualization */}
+                                    <div className="h-48 w-full flex items-end gap-1 pb-2 border-b border-slate-100 overflow-x-auto no-scrollbar">
+                                        {(activeMetric.trend || []).map((val, i) => (
+                                            <div key={i} className="flex-1 min-w-[4px] bg-[#3159E5]/20 rounded-t-sm group relative transition-all hover:bg-[#3159E5]/60" style={{ height: `${(val / 100) * 100}%` }}>
+                                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-[9px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
+                                                    D{i+1}: {val}%
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="bg-[#E3E9FF] p-6 rounded-2xl border border-[#3159E5]/10 flex gap-4">
+                                        <div className="text-[#3159E5] mt-0.5"><Icon name="info" size={18}/></div>
+                                        <p className="text-slate-600 leading-relaxed text-sm font-medium">
+                                            {activeMetric.description}
+                                        </p>
+                                    </div>
+                                    <button onClick={() => setActiveMetric(null)} className="w-full py-4 bg-[#3159E5] text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-black transition-all shadow-xl shadow-[#3159E5]/20">Close Deep Dive</button>
                                 </div>
                             </div>
                         </div>
                     )}
 
                     {activeSignal && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in">
-                            <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95">
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                            <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95">
                                 <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                                     <div className="flex items-center gap-3">
-                                        <div className={`p-2 rounded-lg shadow-sm text-white ${activeSignal.type.includes('Ad') ? 'bg-rose-600' : 'bg-indigo-600'}`}>{activeSignal.type.includes('Ad') ? <Icon name="monitor-play" size={20} /> : <Icon name="shield-check" size={20}/>}</div>
-                                        <div><h4 className="font-bold text-slate-900">{activeSignal.type} Deep Dive</h4><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Source Verified</p></div>
+                                        <div className={`p-2 rounded-lg shadow-sm text-white ${activeSignal.type.includes('Ad') ? 'bg-[#F24C6A]' : 'bg-[#3159E5]'}`}>{activeSignal.type.includes('Ad') ? <Icon name="monitor-play" size={20} /> : <Icon name="shield-check" size={20}/>}</div>
+                                        <div><h4 className="font-bold text-slate-900">{activeSignal.type} Deep Dive</h4><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Source Verified • Intelligence Node</p></div>
                                     </div>
-                                    <button onClick={() => setActiveSignal(null)} className="p-2 hover:bg-slate-200 rounded-lg text-slate-400"><Icon name="x" size={20}/></button>
+                                    <button onClick={() => setActiveSignal(null)} className="p-2 hover:bg-slate-200 rounded-lg text-slate-400 transition-colors"><Icon name="x" size={20}/></button>
                                 </div>
-                                <div className="p-8 space-y-6">
-                                    <h5 className="font-bold text-slate-900 text-lg leading-tight">{activeSignal.label}</h5>
-                                    <div className={`p-6 rounded-xl border ${activeSignal.type.includes('Ad') ? 'bg-rose-50 border-rose-100' : 'bg-indigo-50/50 border-indigo-100'}`}><p className="text-slate-700 leading-relaxed text-[14px]">{activeSignal.fullText}</p></div>
-                                    <div className="p-4 bg-slate-50 rounded-xl flex gap-3"><button onClick={() => { addContext(activeSignal); setActiveSignal(null); }} className="flex-1 py-3 font-bold text-[11px] uppercase tracking-widest bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all flex items-center justify-center gap-2"><Icon name="plus" size={14} /> Add Context</button><button onClick={() => setActiveSignal(null)} className="px-6 py-3 font-bold text-[11px] uppercase text-slate-400">Dismiss</button></div>
+                                
+                                <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                                    {/* Common Header */}
+                                    <div>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Primary Signal</p>
+                                        <h5 className="font-bold text-slate-900 text-2xl leading-tight tracking-tight mb-3">{activeSignal.label}</h5>
+                                        <div className={`p-6 rounded-2xl border relative overflow-hidden ${activeSignal.type.includes('Ad') ? 'bg-rose-50 border-rose-100' : 'bg-[#E3E9FF]/50 border-[#3159E5]/10'}`}>
+                                            <p className="text-slate-700 leading-relaxed text-[14px] font-medium italic relative z-10">"{activeSignal.fullText}"</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Investor Relations Specific Content */}
+                                    {activeSignal.type === 'Investor Relations' && (
+                                        <div className="space-y-6 animate-in">
+                                            <div className="grid grid-cols-2 gap-6">
+                                                <div>
+                                                    <h6 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"><Icon name="list" size={12}/> Strategic Priorities</h6>
+                                                    <ul className="space-y-2">
+                                                        {activeSignal.priorities?.map((priority, i) => (
+                                                            <li key={i} className="flex items-start gap-2 text-[12px] text-slate-700 font-medium leading-snug">
+                                                                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#3159E5] flex-shrink-0"></span>
+                                                                {priority}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                                <div className="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                                                    <h6 className="text-[10px] font-black text-[#3159E5] uppercase tracking-widest mb-3 flex items-center gap-2"><Icon name="zap" size={12}/> Why it matters for Jampp</h6>
+                                                    <p className="text-[12px] leading-relaxed text-slate-600">{activeSignal.jamppImpact}</p>
+                                                </div>
+                                            </div>
+                                            {activeSignal.irLink && (
+                                                <a href={activeSignal.irLink} target="_blank" className="block w-full text-center py-3 border border-slate-200 rounded-xl text-[11px] font-bold text-slate-500 hover:text-slate-900 hover:border-slate-400 transition-all flex items-center justify-center gap-2">
+                                                    View Investor Relations Portal <Icon name="external-link" size={12}/>
+                                                </a>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Ad Intelligence Specific Content */}
+                                    {activeSignal.type === 'Ad Intelligence' && (
+                                        <div className="space-y-6 animate-in">
+                                            <div>
+                                                <h6 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"><Icon name="activity" size={12}/> Technical Analysis</h6>
+                                                <p className="text-[13px] leading-relaxed text-slate-600 mb-4">{activeSignal.deepAnalysis}</p>
+                                                <div className="grid grid-cols-3 gap-3">
+                                                    {activeSignal.adPreviews?.map((ad, i) => (
+                                                        <div key={i} className="bg-white border border-slate-200 rounded-lg p-3 flex flex-col items-center text-center shadow-sm">
+                                                            <div className={`h-16 w-full ${ad.color} rounded mb-2 flex items-center justify-center text-white opacity-90`}>
+                                                                <span className="text-[10px] font-bold uppercase tracking-widest">{ad.platform}</span>
+                                                            </div>
+                                                            <div className="w-full flex justify-between items-center text-[10px] font-medium">
+                                                                <span className="text-slate-500">{ad.format}</span>
+                                                                <span className={`px-1.5 py-0.5 rounded ${ad.status === 'Fatigued' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'} font-bold`}>{ad.status}</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h6 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"><Icon name="link" size={12}/> Direct Ad Library Links</h6>
+                                                <div className="flex gap-2">
+                                                    {activeSignal.links?.google && <a href={activeSignal.links.google} target="_blank" className="flex-1 py-2 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 hover:border-blue-500 hover:text-blue-600 transition-all text-center flex items-center justify-center gap-2"><Icon name="search" size={12}/> Google</a>}
+                                                    {activeSignal.links?.meta && <a href={activeSignal.links.meta} target="_blank" className="flex-1 py-2 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 hover:border-blue-600 hover:text-blue-700 transition-all text-center flex items-center justify-center gap-2"><Icon name="facebook" size={12}/> Meta</a>}
+                                                    {activeSignal.links?.tiktok && <a href={activeSignal.links.tiktok} target="_blank" className="flex-1 py-2 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 hover:border-black hover:text-black transition-all text-center flex items-center justify-center gap-2"><Icon name="video" size={12}/> TikTok</a>}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Apptopia Trend Specific Content */}
+                                    {activeSignal.type === 'Apptopia Trend' && (
+                                        <div className="space-y-6 animate-in">
+                                            <div className="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                                                <div className="flex items-start gap-3">
+                                                    <div className="mt-1"><Icon name="bar-chart-2" size={16} className="text-[#3159E5]" /></div>
+                                                    <div>
+                                                        <h6 className="text-[11px] font-bold text-slate-900 mb-1">Contextual Insight</h6>
+                                                        <p className="text-[13px] leading-relaxed text-slate-600">{activeSignal.detailedContext}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h6 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Metric Shifts (Last 30 Days)</h6>
+                                                <div className="space-y-2">
+                                                    {activeSignal.metricChanges?.map((metric, i) => (
+                                                        <div key={i} className="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-lg shadow-sm">
+                                                            <div>
+                                                                <p className="text-[12px] font-bold text-slate-800">{metric.metric}</p>
+                                                                <p className="text-[10px] text-slate-400">{metric.context}</p>
+                                                            </div>
+                                                            <div className={`px-2 py-1 rounded text-[11px] font-black ${metric.trend === 'up' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                                                                {metric.change}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="flex gap-3 pt-4 border-t border-slate-100 mt-4">
+                                        <button onClick={() => { addContext(activeSignal); setActiveSignal(null); }} className="flex-1 py-4 bg-[#3159E5] text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-[#0B091D] transition-all flex items-center justify-center gap-3 shadow-xl shadow-[#3159E5]/20"><Icon name="plus" size={14} /> Add as Context</button>
+                                        <button onClick={() => setActiveSignal(null)} className="px-8 py-4 font-black text-[11px] text-slate-400 uppercase hover:text-slate-600 transition-colors">Dismiss</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     )}
 
                     {activePersonModal && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in">
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
                             <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95">
                                 <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                                    <div className="flex items-center gap-3"><div className="h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg">{activePersonModal.initials}</div><div><h4 className="font-bold text-slate-900">{activePersonModal.name}</h4><p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">{activePersonModal.role}</p></div></div>
-                                    <button onClick={() => setActivePersonModal(null)} className="p-2 hover:bg-slate-200 rounded-lg text-slate-400"><Icon name="x" size={20}/></button>
+                                    <div className="flex items-center gap-3"><div className="h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg">{activePersonModal.initials}</div><div><h4 className="font-bold text-slate-900">{activePersonModal.name}</h4><p className="text-[10px] font-bold text-[#3159E5] uppercase tracking-widest">{activePersonModal.role} • Verified Identity</p></div></div>
+                                    <button onClick={() => setActivePersonModal(null)} className="p-2 hover:bg-slate-200 rounded-lg text-slate-400 transition-colors"><Icon name="x" size={20}/></button>
                                 </div>
                                 <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto no-scrollbar text-slate-700">
                                     <div className="p-4 bg-slate-50 rounded-xl flex items-center justify-between border border-slate-100">
-                                        <div className="flex items-center gap-3 text-indigo-600"><Icon name="linkedin" size={16}/><span className="text-[11px] font-bold text-slate-500">LinkedIn Profile</span></div>
-                                        <a href={activePersonModal.linkedin} target="_blank" className="text-[11px] font-bold text-indigo-600 hover:underline flex items-center gap-1">View Profile <Icon name="external-link" size={10} /></a>
+                                        <div className="flex items-center gap-3 text-[#3159E5]"><Icon name="linkedin" size={16}/><span className="text-[11px] font-bold text-slate-500">LinkedIn Profile</span></div>
+                                        <a href={activePersonModal.linkedin} target="_blank" className="text-[11px] font-bold text-[#3159E5] hover:underline flex items-center gap-1">View Profile <Icon name="external-link" size={10} /></a>
                                     </div>
-                                    <div><h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Responsibilities</h5><p className="text-[14px] text-slate-700 leading-relaxed font-medium">{activePersonModal.responsibilities}</p></div>
-                                    <div className="bg-slate-900 p-6 rounded-2xl text-white relative overflow-hidden group"><Icon name="sparkles" size={48} className="absolute top-0 right-0 p-4 opacity-10" /><h5 className="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-3">Psychographic Insights</h5><p className="text-[14px] leading-relaxed italic text-white/90">{activePersonModal.psychographic}</p></div>
+                                    <div><h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2"><Icon name="briefcase" size={12}/> Strategic Responsibilities</h5><p className="text-[14px] text-slate-700 leading-relaxed font-medium">{activePersonModal.responsibilities}</p></div>
+                                    <div className="bg-[#0B091D] p-6 rounded-2xl text-white relative overflow-hidden group"><Icon name="sparkles" size={48} className="absolute top-0 right-0 p-4 opacity-10" /><h5 className="text-[10px] font-black text-[#3159E5] uppercase tracking-widest mb-3 flex items-center gap-2"><Icon name="target" size={12}/> Psychographic Profile</h5><p className="text-[14px] leading-relaxed italic text-white/90">"{activePersonModal.psychographic}"</p></div>
                                 </div>
-                                <div className="p-4 bg-slate-50 border-t border-slate-100"><button onClick={() => setActivePersonModal(null)} className="w-full py-3 font-bold text-[11px] uppercase bg-slate-900 text-white rounded-lg">Close Profile</button></div>
+                                <div className="p-4 bg-slate-50 border-t border-slate-100"><button onClick={() => setActivePersonModal(null)} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-black transition-all shadow-xl">Close Profile</button></div>
                             </div>
                         </div>
                     )}
 
                     {activeNewsModal && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in">
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
                             <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95">
                                 <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                                    <div className="flex items-center gap-3"><div className="p-2 bg-indigo-600 rounded-lg text-white shadow-sm"><Icon name="newspaper" size={20}/></div><div><h4 className="font-bold text-slate-900">Intelligence Brief</h4><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{activeNewsModal.source}</p></div></div>
-                                    <button onClick={() => setActiveNewsModal(null)} className="p-2 hover:bg-slate-200 rounded-lg text-slate-400"><Icon name="x" size={20}/></button>
+                                    <div className="flex items-center gap-3"><div className="p-2 bg-[#3159E5] rounded-lg text-white shadow-sm"><Icon name="newspaper" size={20}/></div><div><h4 className="font-bold text-slate-900">Intelligence Brief</h4><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{activeNewsModal.source} • Source Verified</p></div></div>
+                                    <button onClick={() => setActiveNewsModal(null)} className="p-2 hover:bg-slate-200 rounded-lg text-slate-400 transition-colors"><Icon name="x" size={20}/></button>
                                 </div>
                                 <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto no-scrollbar text-slate-700">
-                                    <p className="font-bold text-slate-900 text-lg leading-tight tracking-tight">{activeNewsModal.title}</p>
-                                    <p className="text-[14px] text-slate-700 leading-relaxed">{activeNewsModal.content}</p>
-                                    <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-100 relative overflow-hidden group">
-                                        <Icon name="lightbulb" size={48} className="absolute top-0 right-0 p-4 opacity-20 text-emerald-600" />
-                                        <h5 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-3 flex items-center gap-2"><Icon name="zap" size={12} /> Jampp Angle</h5>
-                                        <p className="text-[14px] text-slate-900 font-medium leading-relaxed">{activeNewsModal.relevance}</p>
+                                    <div>
+                                        <p className="font-bold text-slate-900 text-2xl leading-tight tracking-tight mb-3">{activeNewsModal.title}</p>
+                                        <p className="text-[14px] text-slate-600 leading-relaxed font-medium">{activeNewsModal.content}</p>
                                     </div>
-                                    <div className="flex gap-3"><button onClick={() => { addContext({ ...activeNewsModal, type: 'News' }); setActiveNewsModal(null); }} className="flex-1 py-3 font-bold text-[11px] uppercase bg-indigo-600 text-white rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 transition-all"><Icon name="plus" size={14} /> Add context</button><button onClick={() => setActiveNewsModal(null)} className="px-6 py-3 font-bold text-[11px] text-slate-400">Close</button></div>
+                                    
+                                    <div className="bg-[#E3E9FF] p-6 rounded-3xl border border-[#3159E5]/10 relative overflow-hidden group">
+                                        <Icon name="lightbulb" size={48} className="absolute top-0 right-0 p-4 opacity-20 text-[#3159E5]" />
+                                        <h5 className="text-[10px] font-black text-[#3159E5] uppercase tracking-widest mb-3 flex items-center gap-2"><Icon name="zap" size={12} /> Jampp Strategic Angle</h5>
+                                        <p className="text-[13px] text-slate-900 font-medium leading-relaxed italic">"{activeNewsModal.relevance}"</p>
+                                    </div>
+
+                                    {activeNewsModal.url && (
+                                        <a href={activeNewsModal.url} target="_blank" className="w-full py-3 bg-white border border-slate-200 rounded-xl text-[11px] font-bold text-slate-500 hover:text-slate-900 hover:border-slate-400 transition-all flex items-center justify-center gap-2 shadow-sm">
+                                            Read Full Source on {activeNewsModal.source} <Icon name="external-link" size={12}/>
+                                        </a>
+                                    )}
+
+                                    <div className="flex gap-3 pt-2">
+                                        <button onClick={() => { addContext({ ...activeNewsModal, type: 'News' }); setActiveNewsModal(null); }} className="flex-1 py-4 bg-[#3159E5] text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-[#0B091D] transition-all flex items-center justify-center gap-3 shadow-xl shadow-indigo-100"><Icon name="plus" size={14} /> Add as context</button>
+                                        <button onClick={() => setActiveNewsModal(null)} className="px-8 py-4 font-black text-[11px] text-slate-400 uppercase tracking-widest hover:text-slate-600">Close</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
